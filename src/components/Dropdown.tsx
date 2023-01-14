@@ -35,7 +35,7 @@ const Dropdown: React.FC<{
           {items.map((item, index) => (
             <Menu.Item key={`item-${index}`}>
               {({ active }) => (
-                <div className="group flex items-center px-4 py-2 text-sm hover:bg-slate-100">
+                <div className="group flex items-center px-4 py-2 text-sm hover:bg-gray-100">
                   {item}
                 </div>
               )}

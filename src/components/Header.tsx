@@ -35,17 +35,30 @@ const Header: React.FC = () => {
       <nav className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex w-full items-center justify-between border-b border-indigo-500 py-6 lg:border-none">
           <div>
-            <Link href="/">
+            <Link href="/" className="text-lg font-semibold">
               <span>I Made Dis</span>
             </Link>
           </div>
-          <div>
+          <div className="flex items-center divide-x divide-gray-200">
+            <div className="mr-3 flex items-center space-x-3">
+              <Link
+                href="/explore"
+                className="hover:text-gray-200 hover:underline"
+              >
+                Explore
+              </Link>
+              <Link
+                href="/about"
+                className="hover:text-gray-200 hover:underline"
+              >
+                About
+              </Link>
+            </div>
             {sessionData ? (
               <Dropdown
                 button={
-                  <div className="flex items-center rounded-md py-1 pl-3 text-lg font-semibold hover:bg-slate-900">
+                  <div className="ml-1 flex items-center rounded-md py-1 px-2 text-lg hover:bg-slate-900">
                     <span>{sessionData.user?.name}</span>
-                    <EllipsisVerticalIcon className="h-6 w-6" />
                   </div>
                 }
                 items={dropdownLinks.map((link) => (
