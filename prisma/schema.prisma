@@ -18,7 +18,7 @@ datasource db {
 model Project {
   id            String        @id @default(uuid()) @db.VarChar(36)
   name          String
-  slug          String
+  slug          String        @unique
   version       String
   description   String?       @db.Text
   websiteUrl    String?       @map("website_url") @db.VarChar(2048)
@@ -32,6 +32,11 @@ model Project {
   modifiedBy String   @map("modified_by") @db.VarChar(36)
   modifiedAt DateTime @updatedAt @map("modified_at")
 
+  // Relations
+  ownerId String @db.VarChar(36)
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  @@unique([name, ownerId])
   @@map("project")
 }
 
@@ -74,11 +79,13 @@ model Session {
 model User {
   id            String    @id @default(uuid()) @db.VarChar(36)
   name          String?
+  slug          String?   @unique
   email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
+  Project       Project[]
 
   @@map("user")
 }
