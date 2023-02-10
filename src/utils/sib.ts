@@ -41,9 +41,26 @@ export async function sendTransactionalEmail(params: EmailParams) {
   }
 }
 
+export interface GetContactParams {
+  email: string;
+}
+
+export async function getContact(params: GetContactParams) {
+  const apiInstance = new SibApiV3Sdk.ContactsApi();
+  apiInstance.setApiKey(SibApiV3Sdk.ContactsApiApiKeys.apiKey, env.SIB_API_KEY);
+
+  try {
+    const response = await apiInstance.getContactInfo(params.email);
+    return response;
+  } catch (e) {
+    return null;
+  }
+}
+
 export interface CreateContactParams {
   email: string;
   listIds: number[];
+  updateContact: boolean;
 }
 
 export async function createContact(params: CreateContactParams) {
