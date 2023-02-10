@@ -1,5 +1,5 @@
 import * as SibApiV3Sdk from "@sendinblue/client";
-import { env } from "../../env/server.mjs";
+import { env } from "../env/server.mjs";
 
 export interface EmailParams {
   toEmail: string;
@@ -39,4 +39,21 @@ export async function sendTransactionalEmail(params: EmailParams) {
   } catch (e) {
     console.error(`An error occured while sending email: ${e}`);
   }
+}
+
+export interface CreateContactParams {
+  email: string;
+  listIds: number[];
+}
+
+export async function createContact(params: CreateContactParams) {
+  const apiInstance = new SibApiV3Sdk.ContactsApi();
+  apiInstance.setApiKey(SibApiV3Sdk.ContactsApiApiKeys.apiKey, env.SIB_API_KEY);
+
+  // Create a new contact
+  const contact = new SibApiV3Sdk.CreateContact();
+  contact.email = params.email;
+  contact.listIds = params.listIds;
+
+  await apiInstance.createContact(contact);
 }
