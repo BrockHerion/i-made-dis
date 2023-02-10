@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import Dropdown from "./Dropdown";
 
 const dropdownLinks = [
@@ -36,10 +36,14 @@ const Header: React.FC = () => {
         <div className="flex w-full items-center justify-between border-b border-indigo-500 py-6 lg:border-none">
           <div>
             <Link href="/" className="text-lg font-semibold">
-              <span>I Made Dis</span>
+              <div className="flex items-center">
+                <ChevronLeftIcon className="h-6 w-6" />
+                <span>iMadeDis</span>
+                <ChevronRightIcon className="h-6 w-6" />
+              </div>
             </Link>
           </div>
-          <div className="flex items-center divide-x divide-gray-200">
+          {/* <div className="flex items-center divide-x divide-gray-200">
             <div className="mr-3 flex items-center space-x-3">
               <Link
                 href="/explore"
@@ -74,7 +78,7 @@ const Header: React.FC = () => {
                 <Link href="/auth/signin">Sign in</Link>
               </>
             )}
-          </div>
+          </div> */}
         </div>
       </nav>
     </header>

@@ -7,6 +7,13 @@ import { prisma } from "../../../server/db/client";
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
+    jwt({ token, isNewUser }) {
+      if (isNewUser) {
+        // Send a welcome email
+      }
+
+      return token;
+    },
     session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
