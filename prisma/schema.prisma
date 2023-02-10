@@ -14,10 +14,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// imadedis.dev models
+model Project {
+  id            String        @id @default(uuid()) @db.VarChar(36)
+  name          String
+  slug          String        @unique
+  version       String
+  description   String?       @db.Text
+  websiteUrl    String?       @map("website_url") @db.VarChar(2048)
+  downloadUrl   String?       @map("download_url") @db.VarChar(2048)
+  repositoryUrl String?       @map("repository_url") @db.VarChar(2048)
+  status        ProjectStatus @default(PUBLIC)
+
+  // Audit fields
+  createdBy  String   @map("created_by") @db.VarChar(36)
+  createdAt  DateTime @default(now()) @map("created_at")
+  modifiedBy String   @map("modified_by") @db.VarChar(36)
+  modifiedAt DateTime @updatedAt @map("modified_at")
+
+  // Relations
+  ownerId String @db.VarChar(36)
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  @@unique([name, ownerId])
+  @@map("project")
+}
+
+enum ProjectStatus {
+  PUBLIC
+  PRIVATE
+}
+
 // Necessary for Next auth
 model Account {
-  id                       String  @id @default(cuid())
-  userId                   String
+  id                       String  @id @default(uuid()) @db.VarChar(36)
+  userId                   String  @db.VarChar(36)
   type                     String
   provider                 String
   providerAccountId        String
@@ -36,9 +67,9 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid()) @db.VarChar(36)
   sessionToken String   @unique
-  userId       String
+  userId       String   @db.VarChar(36)
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -46,13 +77,15 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(uuid()) @db.VarChar(36)
   name          String?
+  slug          String?   @unique
   email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
+  Project       Project[]
 
   @@map("user")
 }

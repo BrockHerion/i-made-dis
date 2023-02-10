@@ -21,6 +21,7 @@ export const serverSchema = z.object({
   ),
   GITHUB_CLIENT_ID: z.string(),
   GITHUB_CLIENT_SECRET: z.string(),
+	SIB_API_KEY: z.string()
 });
 
 /**
