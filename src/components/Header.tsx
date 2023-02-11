@@ -43,7 +43,7 @@ const Header: React.FC = () => {
               </div>
             </Link>
           </div>
-          {/* <div className="flex items-center divide-x divide-gray-200">
+          <div className="flex items-center divide-x divide-gray-200">
             <div className="mr-3 flex items-center space-x-3">
               <Link
                 href="/explore"
@@ -78,7 +78,7 @@ const Header: React.FC = () => {
                 <Link href="/auth/signin">Sign in</Link>
               </>
             )}
-          </div> */}
+          </div>
         </div>
       </nav>
     </header>
