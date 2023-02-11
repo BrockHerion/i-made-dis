@@ -2,24 +2,26 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 datasource db {
-  provider = "mysql"
+  provider     = "mysql"
   // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
   // Further reading:
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-  url      = env("DATABASE_URL")
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // imadedis.dev models
 model Project {
-  id            String        @id @default(uuid()) @db.VarChar(36)
+  id            String        @id @default(uuid()) @db.Char(36)
   name          String
   slug          String        @unique
-  version       String
+  version       String?
   description   String?       @db.Text
   websiteUrl    String?       @map("website_url") @db.VarChar(2048)
   downloadUrl   String?       @map("download_url") @db.VarChar(2048)
@@ -27,9 +29,9 @@ model Project {
   status        ProjectStatus @default(PUBLIC)
 
   // Audit fields
-  createdBy  String   @map("created_by") @db.VarChar(36)
+  createdBy  String   @map("created_by") @db.Char(36)
   createdAt  DateTime @default(now()) @map("created_at")
-  modifiedBy String   @map("modified_by") @db.VarChar(36)
+  modifiedBy String   @map("modified_by") @db.Char(36)
   modifiedAt DateTime @updatedAt @map("modified_at")
 
   // Relations
@@ -47,8 +49,8 @@ enum ProjectStatus {
 
 // Necessary for Next auth
 model Account {
-  id                       String  @id @default(uuid()) @db.VarChar(36)
-  userId                   String  @db.VarChar(36)
+  id                       String  @id @default(uuid()) @db.Char(36)
+  userId                   String  @db.Char(36)
   type                     String
   provider                 String
   providerAccountId        String
@@ -67,9 +69,9 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(uuid()) @db.VarChar(36)
+  id           String   @id @default(uuid()) @db.Char(36)
   sessionToken String   @unique
-  userId       String   @db.VarChar(36)
+  userId       String   @db.Char(36)
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -77,7 +79,7 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(uuid()) @db.VarChar(36)
+  id            String    @id @default(uuid()) @db.Char(36)
   name          String?
   slug          String?   @unique
   email         String?   @unique
