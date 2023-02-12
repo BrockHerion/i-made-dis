@@ -17,6 +17,10 @@ datasource db {
 }
 
 // imadedis.dev models
+model Comment {
+  id String @id @default(uuid()) @db.Char(36)
+}
+
 model Project {
   id            String        @id @default(uuid()) @db.Char(36)
   name          String
@@ -39,12 +43,21 @@ model Project {
   owner   User   @relation(fields: [ownerId], references: [id])
 
   @@unique([name, ownerId])
+  @@index([ownerId])
   @@map("project")
 }
 
 enum ProjectStatus {
   PUBLIC
   PRIVATE
+}
+
+model Tag {
+  id String @id @default(uuid()) @db.Char(36)
+}
+
+model Tech {
+  id String @id @default(uuid()) @db.Char(36)
 }
 
 // Necessary for Next auth
@@ -65,6 +78,7 @@ model Account {
   user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("account")
 }
 
@@ -75,6 +89,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("session")
 }
 

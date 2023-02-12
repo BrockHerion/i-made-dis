@@ -187,7 +187,9 @@ export default function Project() {
           </div>
           <div className="col-span-3">
             <div className="mb-6 flex flex-col divide-y divide-gray-200">
-              <ProjectDetail name="Version" value={project.version} />
+              {project.version ? (
+                <ProjectDetail name="Version" value={project.version} />
+              ) : null}
               {project.websiteUrl ? (
                 <ProjectDetail
                   name="Website"

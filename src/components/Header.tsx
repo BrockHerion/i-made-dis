@@ -75,7 +75,12 @@ const Header: React.FC = () => {
               />
             ) : (
               <>
-                <Link href="/auth/signin">Sign in</Link>
+                <Link
+                  className="ml-1 py-1 px-2 hover:text-gray-200 hover:underline"
+                  href="/auth/signin"
+                >
+                  Sign in
+                </Link>
               </>
             )}
           </div>
