@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import format from "date-fns/format";
-import { type NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -108,16 +107,16 @@ const ProjectDetail: React.FC<{
 
 export default function Project() {
   const router = useRouter();
-  const userSlug = router.query.user as string;
-  const projectSlug = router.query.project as string;
+  const userUrl = router.query.user as string;
+  const projectUrl = router.query.project as string;
 
   const [selectedTab, setSelectedTab] = useState<Tab<TabProps> | undefined>(
     tabs[0]
   );
   const { data: project } = trpc.projects.getProjectByUser.useQuery(
     {
-      user: userSlug,
-      project: projectSlug,
+      user: userUrl,
+      project: projectUrl,
     },
     { enabled: router.isReady }
   );
@@ -217,12 +216,13 @@ export default function Project() {
               <ProjectDetail
                 name="Created by"
                 value={project.owner.name ?? ""}
-                url={`/${project.owner.slug}`}
+                url={project.owner.url ?? ""}
               />
               <ProjectDetail
                 name="Last updated"
                 value={format(project.modifiedAt, "MMMM dd, yyyy")}
               />
+
               <div className="grid grid-cols-2 py-2">
                 <div>
                   <h3 className="text-sm text-gray-500">Views</h3>
