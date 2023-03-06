@@ -42,9 +42,25 @@ model Project {
   ownerId String @db.VarChar(36)
   owner   User   @relation(fields: [ownerId], references: [id])
 
+  tags ProjectTag[]
+
   @@unique([name, ownerId])
   @@index([ownerId])
   @@map("project")
+}
+
+model ProjectTag {
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  projectId String  @map("project_id") @db.Char(36)
+  project   Project @relation(fields: [projectId], references: [id])
+  tagId     String  @map("tag_id") @db.Char(36)
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@unique([projectId, tagId])
+  @@index([tagId, projectId])
+  @@map("project_tag")
 }
 
 enum ProjectStatus {
@@ -53,7 +69,13 @@ enum ProjectStatus {
 }
 
 model Tag {
-  id String @id @default(uuid()) @db.Char(36)
+  id      String @id @default(uuid()) @db.Char(36)
+  content String @unique
+
+  // Relations
+  projects ProjectTag[]
+
+  @@map("tag")
 }
 
 model Tech {

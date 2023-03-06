@@ -65,6 +65,23 @@ async function createProjects() {
 
 //#endregion
 
+//#region Tags
+
+async function createTags() {
+  const tag1Content = "Web Development";
+  await prisma.tag.upsert({
+    where: { content: tag1Content },
+    update: {},
+    create: {
+      id: uuidv4(),
+      content: tag1Content,
+      projects: { create: { project: { connect: { id: todoAppId } } } },
+    },
+  });
+}
+
+//#endregion
+
 async function main() {
   logger.info("Beginning database seeding...");
 
