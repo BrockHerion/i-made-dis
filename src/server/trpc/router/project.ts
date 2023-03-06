@@ -21,11 +21,11 @@ export const projectRouter = router({
         });
       }
 
-      const slug = `${user}/${project}`;
+      const url = `/${user}/${project}`;
 
       return ctx.prisma.project.findUniqueOrThrow({
         where: {
-          slug,
+          url,
         },
         include: {
           owner: true,
