@@ -26,7 +26,7 @@ model Comment {
 model Project {
   id            String        @id @default(uuid()) @db.Char(36)
   name          String
-  url           String        @unique
+  slug          String        @unique
   version       String?
   description   String?       @db.Text
   websiteUrl    String?       @map("website_url") @db.VarChar(2048)
@@ -41,14 +41,30 @@ model Project {
   modifiedAt DateTime @updatedAt @map("modified_at")
 
   // Relations
-  ownerId String @db.VarChar(36)
-  owner   User   @relation(fields: [ownerId], references: [id])
+  userId String @map("user_id") @db.VarChar(36)
+  user   User   @relation(fields: [userId], references: [id])
 
-  tags ProjectTag[]
+  tags  ProjectTag[]
+  likes ProjectLike[]
 
-  @@unique([name, ownerId])
-  @@index([ownerId])
+  @@unique([userId, name])
   @@map("project")
+}
+
+model ProjectLike {
+  id    String  @id @default(uuid()) @db.Char(36)
+  liked Boolean
+
+  // Relations
+  projectId String  @map("project_id") @db.VarChar(36)
+  project   Project @relation(fields: [projectId], references: [id])
+
+  userId String @map("user_id") @db.VarChar(36)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@map("project_like")
 }
 
 model ProjectTag {
@@ -61,7 +77,7 @@ model ProjectTag {
   tag       Tag     @relation(fields: [tagId], references: [id])
 
   @@unique([projectId, tagId])
-  @@index([tagId, projectId])
+  @@index([tagId])
   @@map("project_tag")
 }
 
@@ -81,9 +97,18 @@ model Tag {
 }
 
 model Tech {
-  id String @id @default(uuid()) @db.Char(36)
+  id      String @id @default(uuid()) @db.Char(36)
+  content String @unique
 
   @@map("tech")
+}
+
+model View {
+  id    String @id @default(uuid()) @db.Char(36)
+  slug  String @unique
+  count Int
+
+  @@map("view")
 }
 
 // Necessary for Next auth
@@ -120,15 +145,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(uuid()) @db.Char(36)
+  id            String        @id @default(uuid()) @db.Char(36)
   name          String?
-  url           String?   @unique
-  email         String?   @unique
+  slug          String?       @unique
+  email         String?       @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-  Project       Project[]
+  projects      Project[]
+  projectLikes  ProjectLike[]
 
   @@map("user")
 }

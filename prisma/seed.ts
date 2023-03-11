@@ -11,18 +11,18 @@ const logger = pino();
 //#region Users
 
 const jonSnowId = uuidv4();
-const jonSnowUrl = "/jon-snow";
+const jonSnowSlug = "/jon-snow";
 
 async function createUsers() {
   logger.info("Seeding users...");
   await prisma.user.upsert({
-    where: { url: jonSnowUrl },
+    where: { slug: jonSnowSlug },
     update: {},
     create: {
       id: jonSnowId,
       email: "jon.snow@imadedis.dev",
       name: "Jon Snow",
-      url: jonSnowUrl,
+      slug: jonSnowSlug,
       emailVerified: new Date(),
       image: null,
     },
@@ -34,18 +34,17 @@ async function createUsers() {
 
 //#region Projects
 
-const todoAppId = uuidv4();
-const todoUrl = `${jonSnowUrl}/todo-app`;
+const todoSlug = `${jonSnowSlug}/todo-app`;
 
 async function createProjects() {
   logger.info("Seeding projects...");
   await prisma.project.upsert({
-    where: { url: todoUrl },
+    where: { slug: todoSlug },
     update: {},
     create: {
-      id: todoAppId,
+      id: uuidv4(),
       name: "To-Do App",
-      url: todoUrl,
+      slug: todoSlug,
       version: "0.1.0",
       description:
         "A simple to-do app I made because I'm learning to code. This whole 'King in the North' thing is getting to be too much for me.",
@@ -57,7 +56,7 @@ async function createProjects() {
       createdBy: jonSnowId,
       modifiedAt: new Date(),
       modifiedBy: jonSnowId,
-      ownerId: jonSnowId,
+      user: { connect: { id: jonSnowId } },
     },
   });
   logger.info("Done seeding projects.");
@@ -75,7 +74,29 @@ async function createTags() {
     create: {
       id: uuidv4(),
       content: tag1Content,
-      projects: { create: { project: { connect: { id: todoAppId } } } },
+      projects: { create: { project: { connect: { slug: todoSlug } } } },
+    },
+  });
+
+  const tag2Content = "React";
+  await prisma.tag.upsert({
+    where: { content: tag2Content },
+    update: {},
+    create: {
+      id: uuidv4(),
+      content: tag2Content,
+      projects: { create: { project: { connect: { slug: todoSlug } } } },
+    },
+  });
+
+  const tag3Content = "TypeScript";
+  await prisma.tag.upsert({
+    where: { content: tag3Content },
+    update: {},
+    create: {
+      id: uuidv4(),
+      content: tag3Content,
+      projects: { create: { project: { connect: { slug: todoSlug } } } },
     },
   });
 }
@@ -90,6 +111,9 @@ async function main() {
 
   // Seed projects
   await createProjects();
+
+  // Seed tags
+  await createTags();
 
   logger.info("Done seeding database.");
 }

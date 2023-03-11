@@ -1,5 +1,7 @@
-const ProjectDescription: React.FC<{ content?: string }> = ({ content }) => (
-  <p>{content}</p>
-);
+type Props = {
+  content?: string;
+};
 
-export default ProjectDescription;
+export default function ProjectDescription({ content }: Props) {
+  return <p>{content}</p>;
+}
