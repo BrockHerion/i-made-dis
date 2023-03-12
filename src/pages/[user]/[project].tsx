@@ -17,6 +17,7 @@ import { trpc } from "../../utils/trpc";
 import dynamic from "next/dynamic";
 import ProjectTech from "../../components/ProjectTech";
 import { useSession } from "next-auth/react";
+import { NextSeo } from "next-seo";
 
 const ProjectDescription = dynamic(
   () => import("../../components/ProjectDescription"),
@@ -129,13 +130,7 @@ export default function Project() {
   const slug = `/${userUrl}/${projectUrl}`;
   const utils = trpc.useContext();
 
-  const { data: project } = trpc.projects.getProjectByUser.useQuery(
-    {
-      slug,
-    },
-    { enabled: router.isReady }
-  );
-  const { data: views } = trpc.views.getViews.useQuery(
+  const { data: project } = trpc.projects.getProjectBySlug.useQuery(
     {
       slug,
     },
@@ -149,13 +144,24 @@ export default function Project() {
   });
   const likeProjectMutation = trpc.projects.likeProject.useMutation({
     onSuccess(data) {
-      utils.projects.getProjectByUser.setData({ slug: project?.slug }, data);
+      utils.projects.getProjectBySlug.setData(
+        { slug: project?.details.slug },
+        (projectData) => {
+          if (!projectData) {
+            throw new Error("Error loading project data");
+          }
 
-      const userLike = data.likes.find(
-        (like) =>
-          like.userId === session?.user?.id && like.projectId === data.id
+          projectData.likes = data;
+
+          const userLike = projectData.likes.find(
+            (like) => like.userId === session?.user?.id
+          );
+
+          setLiked(userLike ? userLike.liked : false);
+
+          return projectData;
+        }
       );
-      setLiked(userLike?.liked ?? false);
     },
   });
 
@@ -167,15 +173,13 @@ export default function Project() {
   }, [router.isReady]);
 
   useEffect(() => {
-    if (!project) {
-      return;
-    }
+    if (project) {
+      const userLike = project.likes.find(
+        (like) => like.userId === session?.user?.id
+      );
 
-    const userLike = project.likes.find(
-      (like) =>
-        like.userId === session?.user?.id && like.projectId === project.id
-    );
-    setLiked(userLike?.liked ?? false);
+      setLiked(userLike ? userLike.liked : false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project]);
 
@@ -199,137 +203,149 @@ export default function Project() {
     const Component = selectedTab.component;
 
     if (selectedTab.name === "Description") {
-      tabComponent = <Component content={project.description || undefined} />;
+      tabComponent = (
+        <Component content={project.details.description || undefined} />
+      );
     } else {
       tabComponent = <Component projectId={project.id} />;
     }
   }
 
   return (
-    <div>
-      <header>
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
-            {project.name}
-          </h1>
-          <button onClick={onLikeClicked}>
-            {liked ? (
-              <HeartIconSolid className="h-6 w-6 text-red-500" />
-            ) : (
-              <HeartIconOutline className="h-6 w-6 text-gray-500" />
-            )}
-          </button>
-        </div>
-      </header>
-      <main>
-        <div className="grid grid-cols-9 gap-x-12 py-8">
-          <div className="col-span-6">
-            <div className="relative aspect-video w-full overflow-hidden rounded-md shadow-sm">
-              <Image src="/placeholder.jpg" alt="" fill />
-            </div>
-            <div className="pt-4">
-              <div className="hidden sm:block">
-                <div className="border-b border-gray-200">
-                  <nav className="-mb-px flex space-x-8">
-                    {tabs.map((tab) => (
-                      <div
-                        key={tab.name}
-                        className={clsx(
-                          tab === selectedTab
-                            ? "border-yellow-400 text-yellow-500"
-                            : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                          "whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium"
-                        )}
-                      >
-                        <button onClick={() => onTabClick(tab)}>
-                          {tab.name}
-                        </button>
-                      </div>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-              {/* Begin page content */}
-              <div className="pt-4 text-gray-700">{tabComponent}</div>
-            </div>
-          </div>
-          <div className="col-span-3">
-            <div className="mb-6 flex flex-col divide-y divide-gray-200">
-              {project.version ? (
-                <ProjectDetail name="Version" value={project.version} />
-              ) : null}
-              {project.websiteUrl ? (
-                <ProjectDetail
-                  name="Website"
-                  value={project.websiteUrl}
-                  url={project.websiteUrl}
-                  icon={<LinkIcon className="mr-1 h-4 w-4" />}
-                />
-              ) : null}
-              {project.downloadUrl ? (
-                <ProjectDetail
-                  name="Download"
-                  value={project.downloadUrl}
-                  url={project.downloadUrl}
-                  icon={<ArrowDownCircleIcon className="mr-1 h-4 w-4" />}
-                />
-              ) : null}
-              {project.repositoryUrl ? (
-                <ProjectDetail
-                  name="Repository"
-                  value={project.repositoryUrl}
-                  url={project.repositoryUrl}
-                  icon={<CodeBracketIcon className="mr-1 h-4 w-4" />}
-                />
-              ) : null}
-              <ProjectDetail
-                name="Created by"
-                value={project.user.name ?? ""}
-                url={project.user.slug ?? ""}
-              />
-              <ProjectDetail
-                name="Last updated"
-                value={format(project.modifiedAt, "MMMM dd, yyyy")}
-              />
-              <div className="grid grid-cols-2 py-2">
-                <div>
-                  <h3 className="text-sm text-gray-500">Views</h3>
-                  <p className="flex items-center text-gray-700">
-                    <EyeIcon className="mr-1 h-4 w-4" /> {views?.count ?? 0}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm text-gray-500">Likes</h3>
-                  <p className="flex items-center text-gray-700">
-                    <HeartIconSolid className="mr-1 h-4 w-4" />{" "}
-                    {project.likes.length}
-                  </p>
-                </div>
-              </div>
-              <div className="py-1.5">
-                <h3 className="text-sm text-gray-500">Tags</h3>
-                <div className="my-1 flex space-x-2">
-                  {project.tags && project.tags.length > 0
-                    ? project.tags.map((projectTag) => (
-                        <Link
-                          href="#"
-                          key={projectTag.tagId}
-                          className="rounded-md bg-neutral-100 px-2 py-0.5 text-sm shadow-sm hover:bg-neutral-200"
-                        >
-                          {projectTag.tag.content}
-                        </Link>
-                      ))
-                    : null}
-                </div>
-              </div>
-            </div>
-            <button className="flex w-full items-center justify-center space-x-1 rounded-md bg-yellow-400 py-2 shadow-sm">
-              <span>Share</span>
-              <ShareIcon className="h-4 w-4" />
+    <>
+      <NextSeo
+        title={`${project.details.name} - ${project.details.user.name}`}
+        description={project.details.description ?? ""}
+      />
+      <div>
+        <header>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
+              {project.details.name}
+            </h1>
+            <button onClick={onLikeClicked}>
+              {liked ? (
+                <HeartIconSolid className="h-6 w-6 text-red-500" />
+              ) : (
+                <HeartIconOutline className="h-6 w-6 text-gray-500" />
+              )}
             </button>
           </div>
-        </div>
-      </main>
-    </div>
+        </header>
+        <main>
+          <div className="grid grid-cols-9 gap-x-12 py-8">
+            <div className="col-span-6">
+              <div className="relative aspect-video w-full overflow-hidden rounded-md shadow-sm">
+                <Image src="/placeholder.jpg" alt="" fill />
+              </div>
+              <div className="pt-4">
+                <div className="hidden sm:block">
+                  <div className="border-b border-gray-200">
+                    <nav className="-mb-px flex space-x-8">
+                      {tabs.map((tab) => (
+                        <div
+                          key={tab.name}
+                          className={clsx(
+                            tab === selectedTab
+                              ? "border-yellow-400 text-yellow-500"
+                              : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                            "whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium"
+                          )}
+                        >
+                          <button onClick={() => onTabClick(tab)}>
+                            {tab.name}
+                          </button>
+                        </div>
+                      ))}
+                    </nav>
+                  </div>
+                </div>
+                {/* Begin page content */}
+                <div className="pt-4 text-gray-700">{tabComponent}</div>
+              </div>
+            </div>
+            <div className="col-span-3">
+              <div className="mb-6 flex flex-col divide-y divide-gray-200">
+                {project.details.version ? (
+                  <ProjectDetail
+                    name="Version"
+                    value={project.details.version}
+                  />
+                ) : null}
+                {project.details.websiteUrl ? (
+                  <ProjectDetail
+                    name="Website"
+                    value={project.details.websiteUrl}
+                    url={project.details.websiteUrl}
+                    icon={<LinkIcon className="mr-1 h-4 w-4" />}
+                  />
+                ) : null}
+                {project.details.downloadUrl ? (
+                  <ProjectDetail
+                    name="Download"
+                    value={project.details.downloadUrl}
+                    url={project.details.downloadUrl}
+                    icon={<ArrowDownCircleIcon className="mr-1 h-4 w-4" />}
+                  />
+                ) : null}
+                {project.details.repositoryUrl ? (
+                  <ProjectDetail
+                    name="Repository"
+                    value={project.details.repositoryUrl}
+                    url={project.details.repositoryUrl}
+                    icon={<CodeBracketIcon className="mr-1 h-4 w-4" />}
+                  />
+                ) : null}
+                <ProjectDetail
+                  name="Created by"
+                  value={project.details.user.name ?? ""}
+                  url={project.details.user.slug ?? ""}
+                />
+                <ProjectDetail
+                  name="Last updated"
+                  value={format(project.details.modifiedAt, "MMMM dd, yyyy")}
+                />
+                <div className="grid grid-cols-2 py-2">
+                  <div>
+                    <h3 className="text-sm text-gray-500">Views</h3>
+                    <p className="flex items-center text-gray-700">
+                      <EyeIcon className="mr-1 h-4 w-4" />{" "}
+                      {project.views?.count ?? 0}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm text-gray-500">Likes</h3>
+                    <p className="flex items-center text-gray-700">
+                      <HeartIconSolid className="mr-1 h-4 w-4" />{" "}
+                      {project.likes.length}
+                    </p>
+                  </div>
+                </div>
+                <div className="py-1.5">
+                  <h3 className="text-sm text-gray-500">Tags</h3>
+                  <div className="my-1 flex space-x-2">
+                    {project.details.tags && project.details.tags.length > 0
+                      ? project.details.tags.map((projectTag) => (
+                          <Link
+                            href="#"
+                            key={projectTag.tagId}
+                            className="rounded-md bg-neutral-100 px-2 py-0.5 text-sm shadow-sm hover:bg-neutral-200"
+                          >
+                            {projectTag.tag.content}
+                          </Link>
+                        ))
+                      : null}
+                  </div>
+                </div>
+              </div>
+              <button className="flex w-full items-center justify-center space-x-1 rounded-md bg-yellow-400 py-2 shadow-sm">
+                <span>Share</span>
+                <ShareIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }

@@ -23,6 +23,39 @@ model Comment {
   @@map("comment")
 }
 
+model EntityType {
+  id         String   @id @default(uuid()) @db.Char(36)
+  name       String   @unique
+  createdAt  DateTime @default(now()) @map("created_at")
+  modifiedAt DateTime @updatedAt @map("modified_at")
+  likes      Like[]
+
+  @@map("entity_type")
+}
+
+model Like {
+  id         String   @id @default(uuid()) @db.Char(36)
+  liked      Boolean
+  // ID of the entity this like applies to (project, comment, etc)
+  // Note this is not an FK relationship
+  entityId   String   @map("entity_id") @db.Char(36)
+  createdAt  DateTime @default(now()) @map("created_at")
+  modifiedAt DateTime @updatedAt @map("modified_at")
+
+  // Relations
+  userId String @map("user_id") @db.VarChar(36)
+  user   User   @relation(fields: [userId], references: [id])
+
+  entityTypeId String     @map("entity_type_id") @db.VarChar(36)
+  entityType   EntityType @relation(fields: [entityTypeId], references: [id])
+
+  @@unique([userId, entityId])
+  @@index([userId])
+  @@index([entityId])
+  @@index([entityTypeId])
+  @@map("like")
+}
+
 model Project {
   id            String        @id @default(uuid()) @db.Char(36)
   name          String
@@ -44,27 +77,10 @@ model Project {
   userId String @map("user_id") @db.VarChar(36)
   user   User   @relation(fields: [userId], references: [id])
 
-  tags  ProjectTag[]
-  likes ProjectLike[]
+  tags ProjectTag[]
 
   @@unique([userId, name])
   @@map("project")
-}
-
-model ProjectLike {
-  id    String  @id @default(uuid()) @db.Char(36)
-  liked Boolean
-
-  // Relations
-  projectId String  @map("project_id") @db.VarChar(36)
-  project   Project @relation(fields: [projectId], references: [id])
-
-  userId String @map("user_id") @db.VarChar(36)
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@unique([projectId, userId])
-  @@index([userId])
-  @@map("project_like")
 }
 
 model ProjectTag {
@@ -76,7 +92,8 @@ model ProjectTag {
   tagId     String  @map("tag_id") @db.Char(36)
   tag       Tag     @relation(fields: [tagId], references: [id])
 
-  @@unique([projectId, tagId])
+  @@id([projectId, tagId])
+  @@index([projectId])
   @@index([tagId])
   @@map("project_tag")
 }
@@ -101,6 +118,15 @@ model Tech {
   content String @unique
 
   @@map("tech")
+}
+
+model TechType {
+  id         String   @id @default(uuid()) @db.Char(36)
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  modifiedBy String   @map("modified_by") @db.Char(36)
+
+  @@map("tech_type")
 }
 
 model View {
@@ -145,16 +171,16 @@ model Session {
 }
 
 model User {
-  id            String        @id @default(uuid()) @db.Char(36)
+  id            String    @id @default(uuid()) @db.Char(36)
   name          String?
-  slug          String?       @unique
-  email         String?       @unique
+  slug          String?   @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   projects      Project[]
-  projectLikes  ProjectLike[]
+  likes         Like[]
 
   @@map("user")
 }

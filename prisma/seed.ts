@@ -8,6 +8,16 @@ const prisma = new PrismaClient({
 });
 const logger = pino();
 
+//#region Entity Types
+
+async function createEntityTypes() {
+  await prisma.entityType.createMany({
+    data: [{ name: "project" }, { name: "comment" }],
+  });
+}
+
+//#endregion
+
 //#region Users
 
 const jonSnowId = uuidv4();
@@ -105,6 +115,9 @@ async function createTags() {
 
 async function main() {
   logger.info("Beginning database seeding...");
+
+  // Seed entity types
+  await createEntityTypes();
 
   // Seed users
   await createUsers();

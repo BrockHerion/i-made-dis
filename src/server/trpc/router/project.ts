@@ -4,13 +4,13 @@ import { router } from "../trpc";
 import { z } from "zod";
 
 export const projectRouter = router({
-  getProjectByUser: publicProcedure
+  getProjectBySlug: publicProcedure
     .input(
       z.object({
         slug: z.string().nullish(),
       })
     )
-    .query(({ ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const { slug } = input;
 
       if (!slug) {
@@ -20,7 +20,7 @@ export const projectRouter = router({
         });
       }
 
-      return ctx.prisma.project.findUniqueOrThrow({
+      const project = await ctx.prisma.project.findUniqueOrThrow({
         where: {
           slug,
         },
@@ -31,7 +31,49 @@ export const projectRouter = router({
               tag: true,
             },
           },
-          likes: true,
+        },
+      });
+
+      if (!project) {
+        return null;
+      }
+
+      // Load likes and views
+      const result = await ctx.prisma.$transaction([
+        ctx.prisma.view.findUnique({
+          where: { slug },
+        }),
+        ctx.prisma.like.findMany({
+          where: { entityId: project.id, liked: true },
+        }),
+      ]);
+
+      const { id, ...details } = project;
+
+      return {
+        id,
+        details,
+        views: result[0],
+        likes: result[1],
+      };
+    }),
+  getProjectLikes: publicProcedure
+    .input(
+      z.object({
+        projectId: z.string().nullish(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { projectId } = input;
+
+      if (!projectId) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
+      return ctx.prisma.like.findMany({
+        where: {
+          entityId: projectId,
+          liked: true,
         },
       });
     }),
@@ -49,49 +91,57 @@ export const projectRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
-      const project = await prisma?.$transaction(async (tx) => {
-        const projectLike = await tx.projectLike.findUnique({
-          where: { projectId_userId: { projectId, userId } },
-        });
-
-        // Create or update the like
-        if (!projectLike) {
-          await ctx.prisma.projectLike.create({
-            data: {
-              project: { connect: { id: projectId } },
-              user: { connect: { id: userId } },
-              liked: true,
-            },
-          });
-        } else {
-          await ctx.prisma.projectLike.update({
-            where: {
-              id: projectLike.id,
-            },
-            data: {
-              liked: !projectLike.liked,
-            },
-          });
-        }
-
-        return tx.project.findUnique({
-          where: { id: projectId },
-          include: {
-            user: true,
-            tags: {
-              include: {
-                tag: true,
-              },
-            },
-            likes: true,
-          },
-        });
+      const entityType = await ctx.prisma.entityType.findUnique({
+        where: {
+          name: "project",
+        },
       });
 
-      if (!project) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const like = await ctx.prisma.like.findUnique({
+        where: {
+          userId_entityId: {
+            userId,
+            entityId: projectId,
+          },
+        },
+      });
+
+      if (!like) {
+        await ctx.prisma.like.create({
+          data: {
+            entityId: projectId,
+            user: {
+              connect: {
+                id: userId,
+              },
+            },
+            liked: true,
+            entityType: {
+              connect: {
+                id: entityType?.id,
+              },
+            },
+          },
+        });
+      } else {
+        await ctx.prisma.like.update({
+          where: {
+            userId_entityId: {
+              userId,
+              entityId: projectId,
+            },
+          },
+          data: {
+            liked: !like.liked,
+          },
+        });
       }
 
-      return project;
+      return ctx.prisma.like.findMany({
+        where: {
+          entityId: projectId,
+          liked: true,
+        },
+      });
     }),
 });
