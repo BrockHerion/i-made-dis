@@ -113,11 +113,35 @@ async function createTags() {
 
 //#endregion
 
+//#region Tech
+
+const applicationAndData = "Application and Data";
+const hosting = "Hosting";
+const devOps = "DevOps";
+const utils = "Utils";
+const other = "Other";
+
+async function createTechTypes() {
+  await prisma.techType.createMany({
+    data: [
+      { name: applicationAndData },
+      { name: hosting },
+      { name: devOps },
+      { name: utils },
+      { name: other },
+    ],
+  });
+}
+
+async function createTech() {}
+
+//#endregion
+
 async function main() {
   logger.info("Beginning database seeding...");
 
   // Seed entity types
-  await createEntityTypes();
+  //await createEntityTypes();
 
   // Seed users
   await createUsers();
@@ -127,6 +151,9 @@ async function main() {
 
   // Seed tags
   await createTags();
+
+  // Seed Tech
+  //await createTechTypes();
 
   logger.info("Done seeding database.");
 }

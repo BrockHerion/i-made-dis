@@ -1,12 +1,21 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/solid";
 import Dropdown from "./Dropdown";
+import Image from "next/image";
 
 const dropdownLinks = [
   {
     text: "My profile",
     href: "/my-profile",
+  },
+  {
+    text: "Notifications",
+    href: "/my-profile/notifications",
   },
   {
     text: "Settings",
@@ -34,16 +43,19 @@ const Header: React.FC = () => {
     <header className="bg-slate-800 text-white">
       <nav className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex w-full items-center justify-between border-b border-indigo-500 py-6 lg:border-none">
-          <div>
-            <Link href="/" className="text-lg font-semibold">
+          <div className="flex items-center">
+            <Link href="/" className="mr-4 text-lg font-semibold">
               <div className="flex items-center">
-                <ChevronLeftIcon className="h-6 w-6" />
+                <Image
+                  src="/logo-2.png"
+                  width={35}
+                  height={35}
+                  alt=""
+                  className="mr-1"
+                />
                 <span>iMadeDis</span>
-                <ChevronRightIcon className="h-6 w-6" />
               </div>
             </Link>
-          </div>
-          <div className="flex items-center divide-x divide-gray-200">
             <div className="mr-3 flex items-center space-x-3">
               <Link
                 href="/explore"
@@ -58,21 +70,28 @@ const Header: React.FC = () => {
                 About
               </Link>
             </div>
+          </div>
+          <div className="flex items-center">
             {sessionData ? (
-              <Dropdown
-                button={
-                  <div className="ml-1 flex items-center rounded-md py-1 px-2 text-lg hover:bg-slate-900">
-                    <span>{sessionData.user?.name}</span>
-                  </div>
-                }
-                items={dropdownLinks.map((link) => (
-                  <HeaderDropdownLink
-                    key={link.text}
-                    text={link.text}
-                    href={link.href}
-                  />
-                ))}
-              />
+              <>
+                <button>
+                  <MagnifyingGlassIcon className="h-5 w-5" />
+                </button>
+                <Dropdown
+                  button={
+                    <div className="ml-1 flex items-center rounded-md py-1 px-2 text-lg hover:bg-slate-900">
+                      <span>{sessionData.user?.name}</span>
+                    </div>
+                  }
+                  items={dropdownLinks.map((link) => (
+                    <HeaderDropdownLink
+                      key={link.text}
+                      text={link.text}
+                      href={link.href}
+                    />
+                  ))}
+                />
+              </>
             ) : (
               <>
                 <Link
