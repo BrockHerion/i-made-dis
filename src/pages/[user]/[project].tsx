@@ -236,7 +236,11 @@ export default function Project() {
           <div className="grid grid-cols-9 gap-x-12 py-8">
             <div className="col-span-6">
               <div className="relative aspect-video w-full overflow-hidden rounded-md shadow-sm">
-                <Image src="/placeholder.jpg" alt="" fill />
+                <Image
+                  src="https://imagedelivery.net/R04G3EoQU5BrJg2i72ef3A/80bfe8c5-a3c0-4fa1-a329-99e552400900/public"
+                  alt=""
+                  fill
+                />
               </div>
               <div className="pt-4">
                 <div className="hidden sm:block">
